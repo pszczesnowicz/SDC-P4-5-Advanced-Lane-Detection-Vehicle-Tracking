@@ -5,11 +5,10 @@ This is my submission for the Udacity Self-Driving Car Nanodegree Advanced Lane 
 My pipeline's steps are as follows:
 1. Calibrate the camera
 2. Threshold the image gradients and color spaces
-3. Mask the image outside of a region of interest
 4. Warp the image into a bird's eye view perspective
 5. Detect the lane locations
-7. Calculate the road's curvature radius and the vehicle's relation to lane center
-8. Highlight the detected lane and draw information onto the image
+6. Calculate the road's curvature radius and the vehicle's relation to lane center
+7. Highlight the detected lane and draw information onto the image
 
 The following sections explain my pipeline's steps in more detail.
 
@@ -39,26 +38,11 @@ In order to reliably detect the lanes in varying lighting and road surface condi
 
 <img src="https://raw.githubusercontent.com/pszczesnowicz/SDCND-P4-AdvancedLaneDetection/master/readme_images/thresholding.jpg" width="800">
 
-Once the binary images are computed they are combined using `AND` and `OR` operators:
+Once the thresholded binary images are computed they are combined using `AND` and `OR` operators:
 
 `binary_comb[((binary_gradx == 1) & (binary_grady == 1)) | ((binary_grad_mag == 1) & (binary_grad_dir == 1)) | ((binary_rch == 1) & (binary_sch == 1))] = 1`
 
 <img src="https://raw.githubusercontent.com/pszczesnowicz/SDCND-P4-AdvancedLaneDetection/master/readme_images/combined_thresholding.jpg" width="400">
-
-### Masking
-
-Even though gradient and color thresholding does a good job of isolating the lanes there is still noise in the form of tree and car outlines. That is why the image is masked outside of a region of interest defined by the following mask points.
-
-| Mask Points |
-|:------------|
-| 745, 450    |
-| 1130, 720   |
-| 150, 720    |
-| 555, 450    |
-
-Masked image:
-
-<img src="https://raw.githubusercontent.com/pszczesnowicz/SDCND-P4-AdvancedLaneDetection/master/readme_images/masked.jpg" width="400">
 
 ### Warping
 
@@ -77,27 +61,41 @@ Warped image:
 
 <img src="https://raw.githubusercontent.com/pszczesnowicz/SDCND-P4-AdvancedLaneDetection/master/readme_images/warped.jpg" width="400">
 
-### Lane Detection, Road Curvature Radius, and Vehicle Relation to Lane Center
+### Lane Detection
 
-A sliding window technique is used to identify the lanes in the first image that is passed through the pipeline. The starting coordinate points are identified by the peaks of a histogram evaluated at the bottom half of the image. The following coordinate points are identified by sliding the windows up from their starting points and locating the non-zero pixels that fall within the window bounds. The windows are centered on the average location of these non-zero pixels if their quantity is greater than a set value. A polynomial is then fit to each set of left and right coordinate points.
+A sliding window technique is used to identify the lanes in the first image that is passed through the pipeline. The starting points are identified by the peaks of a histogram evaluated at the bottom quarter of the image.
 
-Following the sliding window technique, the lanes are identified by locating all non-zero points that fall within the previously computed polynomials +/- a margin. A polynomial is then fit to each set of left and right coordinate points.
+Histogram of bottom quarter of image:
 
-The current and previously identified coordinate points are compared and their polynomial coefficients are stored if they fall within a margin of each other. Otherwise, the lanes are identified from scratch using the sliding window technique.
+<img src="https://raw.githubusercontent.com/pszczesnowicz/SDCND-P4-AdvancedLaneDetection/master/readme_images/histogram.jpg" width="400">
 
-To achieve a greater detection accuracy I averaged the left and right lane polynomial coefficients with each other and those previously computed. This reduces the effects of incorrectly identified co-ordinate points due to noise in the image.
+The following points are then identified by sliding the windows up from their starting points and locating the non-zero pixels that fall within the window bounds. The windows are centered on the average location of these non-zero pixels if their quantity is greater than a set threshold, if not they are shifted by the previous amount. A polynomial is then fit to each set of left and right points.
 
-I then used the polynomial coefficients to compute the road's curvature radius at the bottom of the image. I also compute the vehicle's relation to lane center by subtracting the polynomial x-point at the bottom of the image from half of the image's width.
+Following the sliding window technique, the lanes are identified by locating all non-zero points that fall within the previously computed polynomials +/- a margin. A polynomial is then fit to each set of left and right points.
 
-Additionally, I included an arrow pointing in the direction the driver would need to steer in order to center the vehicle; it shows up as either green, yellow, or red depending on the vehicle's deviation from the lane center. This is purely cosmetic and I added it while I was stuck on another section of the pipeline to keep myself busy.
+To smooth the results I computed a weighted average of the current and previous polynomial coefficients. For the weights I used the fraction of detected non-zero pixels for the current and previous image.
 
-Output image with the lane highlighted and the road's curvature radius and vehicle's relation to lane center displayed:
+The current and previous polynomial coefficients are compared and saved if they fall within a margin of each other. Otherwise, the lanes are identified from scratch using the sliding window technique.
+
+### Road Curvature Radius and Vehicle Relation to Lane Center
+
+I used the polynomial coefficients to compute the road's curvature radius at the bottom of the image. I also compute the vehicle's relation to lane center by subtracting the lane center from half of the image width (vehicle center).
+
+Additionally, I included an arrow pointing in the direction the driver would need to steer in order to center the vehicle; it shows up as either green, yellow, or red depending on the vehicle's deviation from the lane center.
 
 <img src="https://raw.githubusercontent.com/pszczesnowicz/SDCND-P4-AdvancedLaneDetection/master/readme_images/output.jpg" width="400">
 
+## Conclusion
+
+I spent a lot of time tweaking the image gradient and color space thresholds as well as different combinations of thresholded binary images. With more time I would be able to better optimize the parameters so that the pipeline would be able to generalize on the project and challenge videos.
+
+I also tried different lane validation criteria, such as comparing lane curvature and detection confidence, but settled on a simple approach of comparing the polynomial coefficients to determine whether a lane was correctly detected.
+
+I plan on revisiting this project to improve the robustness of my pipeline so that it could successfully detect the lanes in the challenge videos.
+
 ## Results
 
-[<img src="https://raw.githubusercontent.com/pszczesnowicz/SDCND-P4-AdvancedLaneDetection/master/readme_images/video_01.jpg" width="800">](https://www.youtube.com/watch?v=xs40-6d_F4E "Click to watch")
+[<img src="https://raw.githubusercontent.com/pszczesnowicz/SDCND-P4-AdvancedLaneDetection/master/readme_images/video_01.jpg" width="800">](https://www.youtube.com/watch?v=1lufec96GGs "Click to watch")
 
 ## References
 [Udacity Self-Driving Car ND](http://www.udacity.com/drive)
