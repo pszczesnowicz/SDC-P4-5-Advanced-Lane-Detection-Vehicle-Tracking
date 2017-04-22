@@ -134,8 +134,6 @@ A heatmap is created to further discard false positives and combine multiple det
 
 The combined pipeline uses the outputs of the lane and vehicle detection pipelines to draw the highlighted lane, road's curvature radius, vehicle's relation to lane center, and vehicle bounding boxes on the undistorted image.
 
-<img src="https://raw.githubusercontent.com/pszczesnowicz/SDCND-P4-5-AdvLaneVehicleDetection/master/readme_images/output.jpg" width="400">
-
 [<img src="https://raw.githubusercontent.com/pszczesnowicz/SDCND-P4-5-AdvLaneVehicleDetection/master/readme_images/video_01.jpg" width="800">](https://www.youtube.com/watch?v=RY65sIWyyLQ&feature=youtu.be "Click to watch")
 
 ## Conclusion
